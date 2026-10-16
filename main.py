@@ -1,18 +1,19 @@
-import requests
+from ollama import chat
+
 
 URl='http://localhost:11434/api/chat'
 MODEL_NAME = 'phi3'
 
 def chat_requests(messages):
-    payload = {
-        'model': MODEL_NAME,
-        'messages': messages,
-        'stream': False,
-    }
-    response = requests.post(URl, json=payload)
-    response.raise_for_status()
-    data = response.json()
-    return data['message']['content']
+    stream = chat(model=MODEL_NAME, messages=messages, stream=True)
+    full_reply = ''
+    for chunk in stream:
+        piece = chunk['message']['content']
+        print(piece, end='', flush=True)
+        full_reply += piece
+    return full_reply
+
+
 
 def main():
     messages = [
@@ -31,13 +32,14 @@ def main():
             'role': 'user',
             'content': user_input
         })
+        print('\nAssistant:', end='', flush=True)
         reply = chat_requests(messages)
         messages.append({
             'role': 'assistant',
             'content': reply
         })
-        print('\nAssistant:', reply)
-        print('_' * 60)
+        print()
+        print('_' * 65)
 
 
 
